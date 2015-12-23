@@ -37,7 +37,8 @@ class Exist(LoggingMixIn, Operations):
     Files not in the format exist/[01].\d+ never exist.
     '''
     def __init__(self):
-        pass
+        self.main_dir = '/exist'
+        self.stable_dirs = {'/', self.main_dir}
 
     def __call__(self, *args):
         # for debugging purposes
@@ -55,12 +56,12 @@ class Exist(LoggingMixIn, Operations):
             between 0 and 1 (inclusive).
         @return True iff the file exists right now.
         '''
-        if (path in ('/', '/exist')):
+        if (path in self.stable_dirs):
             return True
-        if (path[:7] != '/exist/'):
+        if (path[:len(self.main_dir)] != self.main_dir):
             return False
         
-        filename = path[7:]
+        filename = path[len(self.main_dir):]
         try:
             probability = float(filename)
         except ValueError:
@@ -112,8 +113,6 @@ class Exist(LoggingMixIn, Operations):
         Implementation details: return None on exists/good permissions;
             raise FuseOSError(EACESS) on nonexistent/bad permissions.
         '''
-        if (path in ('/', '/exist')):
-            return
         # You can't write to anything here
         if (mode & os.W_OK):
             raise FuseOSError(EACCES)
@@ -139,14 +138,6 @@ class Exist(LoggingMixIn, Operations):
         if (not self._exists(path)):
             raise FuseOSError(errno.ENOENT)
 
-        '''
-        mode = self._mode()
-        # Need to set the directory bit on the mode or file managers will
-        # reject the filesystem.
-        if path in ('/', '/exist'):
-            mode |= stat.S_IFDIR
-        '''
-
         mode = stat.S_IFDIR | 0o775
         attr = {'st_atime': self._timestamp(),
                 'st_ctime': self._timestamp(),
@@ -166,7 +157,7 @@ class Exist(LoggingMixIn, Operations):
         Return a directory listing
         '''
         if (path == '/'):
-            return ['.', '..', 'exist']
+            return ['.', '..', self.main_dir[1:]] # strip leading '/'
         # return a random folder too.
         return ['.', '..', str(random.random())]
 
