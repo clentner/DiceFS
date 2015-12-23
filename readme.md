@@ -20,7 +20,9 @@ Such an unpredictable filesystem is useful for robustness-testing of anything
 that deals with files. How much does your application's security rely on sane
 information from the (imperfect, corruptible) filesystem it relies on?
 PCManFM, for example, handles edge-cases quite well:
+
 ![PCManFM interacting with randomly-disappearing folders](random.gif "DiceFS in PCManFM")
+
 Caching behavior can also be quickly investigated with a filesystem this shifty:
 
 
